@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 // Post representa una publicación en el blog
 type Post struct {
@@ -12,9 +16,9 @@ type Post struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// NewPost crea una nueva publicación con los datos proporcionados
 func NewPost(title, content, author string) *Post {
 	return &Post{
+		ID:        uuid.New().String(), // Genera un nuevo UUID como ID
 		Title:     title,
 		Content:   content,
 		Author:    author,
