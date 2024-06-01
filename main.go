@@ -2,6 +2,7 @@ package main
 
 import (
 	"blog/internal/config"
+	"blog/internal/database"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +11,12 @@ import (
 )
 
 func main() {
+
+	err := database.Setup()
+	if err != nil {
+		log.Fatal("Error connecting to database", err)
+	}
+
 	config.LoadConfig()
 
 	r := mux.NewRouter()
