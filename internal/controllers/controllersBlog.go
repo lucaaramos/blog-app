@@ -1,52 +1,47 @@
 package controllers
 
 import (
-	"blog-backend/internal/models"
-	"blog-backend/internal/repository"
+	"blog/internal/models"
+	"blog/internal/repository"
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
 type BlogController struct {
-	postRepo *repository.PostRepository
+	repo *repository.PostRepository
 }
 
-func NewBlogController(postRepo *repository.PostRepository) *BlogController {
-	return &BlogController{postRepo}
+func NewBlogController(repo *repository.PostRepository) *BlogController {
+	return &BlogController{repo}
 }
 
 func (bc *BlogController) CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	var post models.Post
-	err := json.NewDecoder(r.Body).Decode(&post)
-	if err != nil {
-		http.Error(w, "Error decoding post data", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = bc.postRepo.CreatePost(r.Context(), &post)
-	if err != nil {
-		http.Error(w, "Error creating post", http.StatusInternalServerError)
-		log.Println("Error creating post:", err)
+	if err := bc.repo.CreatePost(r.Context(), &post); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
+
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(post)
 }
 
 func (bc *BlogController) GetPostByIDHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	postID := params["id"]
+	id := params["id"]
 
-	post, err := bc.postRepo.GetPostByID(r.Context(), postID)
+	post, err := bc.repo.GetPostByID(r.Context(), id)
 	if err != nil {
-		http.Error(w, "Error getting post", http.StatusInternalServerError)
-		log.Println("Error getting post:", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(post)
 }
