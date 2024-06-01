@@ -1,6 +1,7 @@
 package main
 
 import (
+	"blog/internal/config"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,9 +10,10 @@ import (
 )
 
 func main() {
+	config.LoadConfig()
 
 	r := mux.NewRouter()
-	port := "8000"
+	port := config.AppConfig.Port
 
 	r.HandleFunc("/ping", PingHandler).Methods("GET")
 
