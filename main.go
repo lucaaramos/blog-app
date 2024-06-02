@@ -1,9 +1,9 @@
 package main
 
 import (
-	"blog/internal/config"
-	"blog/internal/database"
-	"fmt"
+	"blog/internal/controllers"
+	"blog/internal/repository"
+	"blog/internal/routes"
 	"log"
 	"net/http"
 
@@ -11,24 +11,18 @@ import (
 )
 
 func main() {
+	// Inicializar el repositorio de publicaciones
+	postRepo := repository.NewPostRepository()
 
-	err := database.Setup()
-	if err != nil {
-		log.Fatal("Error connecting to database", err)
-	}
+	// Inicializar el controlador de blog
+	blogController := controllers.NewBlogController(postRepo)
 
-	config.LoadConfig()
+	// Configurar el enrutador
+	router := mux.NewRouter()
+	routes.SetupRoutes(router, blogController)
 
-	r := mux.NewRouter()
-	port := config.AppConfig.Port
-
-	r.HandleFunc("/ping", PingHandler).Methods("GET")
-
-	fmt.Println("Server starting on port:", port)
-	log.Fatal(http.ListenAndServe(":"+port, r))
-}
-
-func PingHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("pong"))
+	// Iniciar el servidor HTTP
+	serverAddr := ":8000"
+	log.Printf("Starting server on %s\n", serverAddr)
+	log.Fatal(http.ListenAndServe(serverAddr, router))
 }
