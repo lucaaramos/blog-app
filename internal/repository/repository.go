@@ -4,6 +4,7 @@ import (
 	"blog/internal/models"
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -44,4 +45,31 @@ func (r *PostRepository) GetPostByID(ctx context.Context, id string) (*models.Po
 		return nil, err
 	}
 	return &post, nil
+}
+
+func (r *PostRepository) GetAllBlogs(ctx context.Context) ([]models.Post, error) {
+	var posts []models.Post
+
+	cursor, err := r.collection.Find(ctx, bson.M{})
+	if err != nil {
+		log.Println("Error getting data", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		var post models.Post
+		if err := cursor.Decode(&post); err != nil {
+			log.Println("Error decoding data", err)
+			continue
+		}
+		posts = append(posts, post)
+	}
+
+	if err := cursor.Err(); err != nil {
+		log.Println("Cursor error: ", err)
+		return nil, err
+	}
+
+	return posts, nil
+
 }
