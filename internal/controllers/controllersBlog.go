@@ -4,6 +4,7 @@ import (
 	"blog/internal/models"
 	"blog/internal/repository"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -44,4 +45,15 @@ func (bc *BlogController) GetPostByIDHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	json.NewEncoder(w).Encode(post)
+}
+
+func (bc *BlogController) GetAllBlogsHandler(w http.ResponseWriter, r *http.Request) {
+	posts, err := bc.repo.GetAllBlogs(r.Context())
+	if err != nil {
+		http.Error(w, "Error getting blogs", http.StatusInternalServerError)
+		log.Print("Error getting blog")
+		return
+	}
+	w.Header().Set("Content-type", "application/json")
+	json.NewEncoder(w).Encode(posts)
 }
