@@ -32,13 +32,14 @@ func (r *PostRepository) CreatePost(ctx context.Context, post *models.Post) erro
 	post.ID = primitive.NewObjectID().Hex()
 	post.CreatedAt = time.Now()
 	post.UpdatedAt = time.Now()
+	post.Status = true
 	_, err := r.collection.InsertOne(ctx, post)
 	return err
 }
 
 func (r *PostRepository) GetPostByID(ctx context.Context, id string) (*models.Post, error) {
 	var post models.Post
-	if err := r.collection.FindOne(ctx, bson.M{"id": id}).Decode(&post); err != nil {
+	if err := r.collection.FindOne(ctx, bson.M{"id": id, "status": true}).Decode(&post); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, errors.New("post not found")
 		}
@@ -49,8 +50,8 @@ func (r *PostRepository) GetPostByID(ctx context.Context, id string) (*models.Po
 
 func (r *PostRepository) GetAllBlogs(ctx context.Context) ([]models.Post, error) {
 	var posts []models.Post
-
-	cursor, err := r.collection.Find(ctx, bson.M{})
+	filter := bson.M{"status": true}
+	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
 		log.Println("Error getting data", err)
 		return nil, err
@@ -72,4 +73,40 @@ func (r *PostRepository) GetAllBlogs(ctx context.Context) ([]models.Post, error)
 
 	return posts, nil
 
+}
+
+func (r *PostRepository) UpdateBlog(ctx context.Context, id string, updatePost *models.Post) error {
+	filter := bson.M{"id": id, "status": true}
+	update := bson.M{
+		"$set": bson.M{
+			"title":   updatePost.Title,
+			"content": updatePost.Content,
+			"author":  updatePost.Author,
+		},
+	}
+	result, err := r.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return errors.New("Post not found")
+	}
+	return nil
+}
+
+func (r *PostRepository) DeleteBlog(ctx context.Context, id string, deletePost *models.Post) error {
+	filter := bson.M{"id": id, "status": true}
+	update := bson.M{
+		"$set": bson.M{
+			"status": deletePost.Status,
+		},
+	}
+	result, err := r.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return errors.New("Post not found")
+	}
+	return nil
 }
