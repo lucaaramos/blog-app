@@ -15,13 +15,12 @@ type User struct {
 	UserName  string    `json:"username" bson:"username"`
 	Password  string    `json:"password" bson:"password"`
 	Role      string    `json:"role" bson:"role"`
-	Posts     []Post    `json:"posts"`
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time `json:"update_at" bson:"update_at"`
+	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 	Status    bool      `json:"status" bson:"status"`
 }
 
-func NewUser(name, email, username, password, role string, posts []Post) *User {
+func NewUser(name, email, username, password, role string) *User {
 	return &User{
 		Id:        uuid.New().String(),
 		Name:      name,
