@@ -57,3 +57,37 @@ func (bc *BlogController) GetAllBlogsHandler(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-type", "application/json")
 	json.NewEncoder(w).Encode(posts)
 }
+
+func (bc *BlogController) UpdateBlogHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	var updatePost models.Post
+	if err := json.NewDecoder(r.Body).Decode(&updatePost); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Println("Bad Request")
+		return
+	}
+
+	if err := bc.repo.UpdateBlog(r.Context(), id, &updatePost); err != nil {
+		http.Error(w, "Error updating post", http.StatusInternalServerError)
+		log.Println("Error updating post")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updatePost)
+}
+
+// func (bc *BlogController) DeleteBlogHandler(w http.ResponseWriter, r *http.Request) {
+// 	params := mux.Vars(r)
+// 	id := params["id"]
+
+// 	if err := bc.repo.DeleteBlog(r.Context(), id); err != nil {
+// 		http.Error(w, "Error deleting post", http.StatusInternalServerError)
+// 		log.Println("Error deleting post")
+// 		return
+// 	}
+// 	w.WriteHeader(http.StatusOK)
+// 	json.NewEncoder(w).Encode("ok")
+// }
