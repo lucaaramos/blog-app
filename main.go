@@ -13,13 +13,16 @@ import (
 func main() {
 	// Inicializar el repositorio de publicaciones
 	postRepo := repository.NewPostRepository()
+	userRepo := repository.NewUserRepository()
 
 	// Inicializar el controlador de blog
 	blogController := controllers.NewBlogController(postRepo)
+	userController := controllers.NewUserController(userRepo)
 
 	// Configurar el enrutador
 	router := mux.NewRouter()
 	routes.SetupRoutes(router, blogController)
+	routes.SetUpRoutes(router, userController)
 
 	// Iniciar el servidor HTTP
 	serverAddr := ":8000"
