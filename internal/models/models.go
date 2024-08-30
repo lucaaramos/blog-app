@@ -15,9 +15,10 @@ type Post struct {
 	CreatedAt time.Time `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" bson:"updated_at"`
 	Status    bool      `json:"status" bson:"status"`
+	UserId    string    `json:"user_id" bson:"user_id"`
 }
 
-func NewPost(title, content, author string) *Post {
+func NewPost(title, content, author, userid string) *Post {
 	return &Post{
 		ID:        uuid.New().String(), // Genera un nuevo UUID como ID
 		Title:     title,
@@ -26,5 +27,6 @@ func NewPost(title, content, author string) *Post {
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Status:    true,
+		UserId:    userid,
 	}
 }
