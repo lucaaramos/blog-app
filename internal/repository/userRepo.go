@@ -49,7 +49,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) erro
 }
 func (r *UserRepository) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	var users []models.User
-	filter := bson.M{"status": true}
+	filter := bson.M{}
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
 		log.Print("Error getting users", err)
