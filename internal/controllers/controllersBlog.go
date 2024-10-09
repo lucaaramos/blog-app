@@ -4,6 +4,7 @@ import (
 	"blog/internal/models"
 	"blog/internal/repository"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -77,6 +78,7 @@ func (bc *BlogController) UpdateBlogHandler(w http.ResponseWriter, r *http.Reque
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(updatePost)
+	fmt.Println("Post updated succusfuly")
 }
 
 // func (bc *BlogController) DeleteBlogHandler(w http.ResponseWriter, r *http.Request) {
