@@ -3,6 +3,7 @@ package controllers
 import (
 	"blog/internal/models"
 	"blog/internal/repository"
+	"blog/internal/utils"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -79,6 +80,60 @@ func (bc *BlogController) UpdateBlogHandler(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(updatePost)
 	fmt.Println("Post updated succusfuly")
+}
+
+func (uc *UserController) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	var creds models.User
+	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	// Buscar el usuario en la base de datos
+	user, err := uc.repo.FindByUsername(r.Context(), creds.UserName)
+	if err != nil {
+		http.Error(w, "User not found", http.StatusUnauthorized)
+		return
+	}
+
+	// Validar la contraseña
+	if err := user.CheckPassword(creds.Password); err != nil {
+		log.Println("Invalid credentials", err)
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	}
+
+	// Generar el token JWT
+	token, err := utils.GenerateJWT(user.UserName)
+	if err != nil {
+		log.Println("Error generating token", err)
+		http.Error(w, "Error generating token", http.StatusInternalServerError)
+		return
+	}
+
+	// Devolver el token al usuario
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"token": token,
+	})
+}
+
+func (uc *UserController) ProtectedEndpoint(w http.ResponseWriter, r *http.Request) {
+	// Extraer la información del usuario del contexto (que el middleware pone)
+	user := r.Context().Value("user").(map[string]interface{})
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		log.Println("Error getting data of user", err)
+		http.Error(w, "Error al obtener datos del usuario", http.StatusUnauthorized)
+		return
+	}
+
+	// Devolver los datos del usuario en formato JSON
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		log.Printf("Error al codificar datos del usuario: %v\n", err)
+		http.Error(w, "Error interno del servidor", http.StatusInternalServerError)
+		return
+	}
 }
 
 // func (bc *BlogController) DeleteBlogHandler(w http.ResponseWriter, r *http.Request) {

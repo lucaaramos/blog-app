@@ -38,6 +38,12 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) erro
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
+	// hasheamos la contraseña antes de guardar
+
+	if err := user.HashPassword(); err != nil {
+		return err
+	}
+
 	// Insertar el usuario en la colección "users"
 	_, err := r.collection.InsertOne(ctx, user)
 	if err != nil {
@@ -47,6 +53,18 @@ func (r *UserRepository) CreateUser(ctx context.Context, user *models.User) erro
 
 	return nil
 }
+
+// creamos una funcion para buscar el usuario por username
+func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*models.User, error) {
+	var user models.User
+	filter := bson.M{"username": username}
+	err := r.collection.FindOne(ctx, filter).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (r *UserRepository) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	var users []models.User
 	filter := bson.M{}
